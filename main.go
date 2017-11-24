@@ -16,13 +16,15 @@ import (
 )
 
 var (
-	url string
-	to  string
+	url     string
+	to      string
+	pattern string
 )
 
 func main() {
 	flag.StringVar(&url, "url", "", "full output URL of your datacube processing")
 	flag.StringVar(&to, "to", ".", "path where you want files to be downloaded")
+	flag.StringVar(&pattern, "pattern", ".+", "download only files that match this pattern")
 	flag.Parse()
 
 	if url == "" {
@@ -31,7 +33,14 @@ func main() {
 
 	username, password := credentials()
 
+	// fetch filelist
 	links := getFilelist(url, username, password)
+
+	// filter by regexp
+	regexp := initRegexp(pattern)
+	links = filterStringsByRegexp(links, regexp)
+
+	// download
 	getFiles(url, links, to, username, password)
 }
 
